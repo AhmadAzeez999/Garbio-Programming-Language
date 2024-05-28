@@ -1,0 +1,11 @@
+wsl --install
+cd /mnt/c/Users/user/Documents/GitHub/Garbio-Programming-Language/Garbio
+
+For new laptop:
+cd /mnt/c/Users/abios/OneDrive/Documents/GitHub/Garbio-Programming-Language/Garbio
+
+What I had to do to get make to work:
+Install make
+sudo apt install build-essential
+sudo apt-get update
+sudo apt-get install build-essential

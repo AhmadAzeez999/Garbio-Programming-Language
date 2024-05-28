@@ -1,0 +1,4 @@
+var isWorking = true;
+
+display("isWorking");
+display(isWorking);

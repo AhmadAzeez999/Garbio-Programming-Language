@@ -1,0 +1,7 @@
+function dosomething(x, y)
+{
+    display(x);
+    display(y);
+};
+
+dosomething("hello", "world");

@@ -1,0 +1,15 @@
+# Math and comments work!!!
+
+var num = 10;
+var num2 = 30;
+
+var sub = 10 - 5;
+var div = 30 / 5;
+
+# Should return 7
+var sums = (2 + 3) + (10 / 5);
+
+displayln(num + num2);
+displayln(sums);
+displayln(sub);
+displayln(div);

@@ -1,0 +1,6 @@
+function dosomething()
+{
+    display("something");
+};
+    
+dosomething();

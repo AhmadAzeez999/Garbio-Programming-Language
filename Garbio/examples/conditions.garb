@@ -1,0 +1,15 @@
+var isWorking = true;
+var secondCondition = false;
+
+if(isWorking)
+{
+    display("Yes, it is!");
+}
+elseif(secondCondition)
+{
+    display("2nd condition is true, whatever it is");
+}
+else
+{
+    display("No, it is no- Well, it is still working actually");
+}
