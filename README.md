@@ -48,6 +48,17 @@ else
 }
 ```
 
+6. while: For creating loops
+``` garbio
+var count = 1;
+
+while (count < 5)
+{
+  display(count);
+  count = count + 1;
+}
+```
+
 ## Data Types:
 - Strings (text)
 - Numbers (integers)
