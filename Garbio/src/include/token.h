@@ -24,7 +24,16 @@ typedef struct TOKEN_STRUCT
         TOKEN_PLUS,
         TOKEN_MINUS,
         TOKEN_MUL,
-        TOKEN_DIV
+        TOKEN_DIV,
+        TOKEN_WHILE,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTE,
+        TOKEN_GTE,
+        TOKEN_OR,
+        TOKEN_AND
     } type;
 
     char* value;

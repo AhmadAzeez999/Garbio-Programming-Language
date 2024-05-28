@@ -18,6 +18,7 @@ typedef struct AST_STRUCT
         AST_ELSE,
         AST_NUMBER,
         AST_BINOP,
+        AST_WHILE,
         AST_NOOP // No operation
     } type;
 
@@ -68,6 +69,14 @@ typedef struct AST_STRUCT
     struct AST_STRUCT* binop_left; // left operand
     struct AST_STRUCT* binop_right; // right operand
     int op; // operator
+
+    /* AST_WHILE */
+    struct AST_STRUCT* while_condition;
+    struct AST_STRUCT* while_body;
+
+    /* AST_ASSIGNMENT */
+    struct AST_STRUCT* assignment_variable;
+    struct AST_STRUCT* assignment_value;
 
 } AST_T;
 

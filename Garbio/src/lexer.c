@@ -52,10 +52,72 @@ token_T* lexer_get_next_token(lexer_T* lexer)
 
         switch (lexer->c)
         {
-            case '=': 
+            case '=':
+                if (lexer_peek(lexer, 1) == '=')
+                {
+                    lexer_advance(lexer);
+                    lexer_advance(lexer);
+                    return init_token(TOKEN_EQEQ, "==");
+                }
+                
                 return lexer_advance_with_token(lexer, init_token(TOKEN_EQUALS, lexer_get_current_char_as_string(lexer)));  
 
                 break;
+
+            case '!':
+                if (lexer_peek(lexer, 1) == '=')
+                {
+                    lexer_advance(lexer);
+                    lexer_advance(lexer);
+                    return init_token(TOKEN_NEQ, "!=");
+                }
+
+                break;
+
+            case '<':
+                if (lexer_peek(lexer, 1) == '=')
+                {
+                    lexer_advance(lexer);
+                    lexer_advance(lexer);
+                    return init_token(TOKEN_LTE, "<=");
+                }
+                
+                return lexer_advance_with_token(lexer, init_token(TOKEN_LT, lexer_get_current_char_as_string(lexer)));  
+
+                break;
+
+            case '>':
+                if (lexer_peek(lexer, 1) == '=')
+                {
+                    lexer_advance(lexer);
+                    lexer_advance(lexer);
+                    return init_token(TOKEN_GTE, ">=");
+                }
+                
+                return lexer_advance_with_token(lexer, init_token(TOKEN_GT, lexer_get_current_char_as_string(lexer)));  
+
+                break;
+
+            case '|':
+                if (lexer_peek(lexer, 1) == '|')
+                {
+                    lexer_advance(lexer);
+                    lexer_advance(lexer);
+                    return init_token(TOKEN_OR, "||");
+                }
+
+                break;
+
+            case '&':
+                if (lexer_peek(lexer, 1) == '&')
+                {
+                    lexer_advance(lexer);
+                    lexer_advance(lexer);
+                    return init_token(TOKEN_AND, "&&");
+                }
+
+                break;
+
             case ';': 
                 return lexer_advance_with_token(lexer, init_token(TOKEN_SEMI, lexer_get_current_char_as_string(lexer)));
 
@@ -121,6 +183,18 @@ token_T* lexer_get_next_token(lexer_T* lexer)
             else if (strcmp(id_token->value, "else") == 0)
             {
                 id_token->type = TOKEN_ELSE;
+            }
+            else if (strcmp(id_token->value, "while") == 0)
+            {
+                id_token->type = TOKEN_WHILE;
+            }
+            else if (strcmp(id_token->value, "and") == 0)
+            {
+                id_token->type = TOKEN_AND;
+            }
+            else if (strcmp(id_token->value, "or") == 0)
+            {
+                id_token->type = TOKEN_OR;
             }
 
             return id_token;
@@ -213,4 +287,12 @@ void lexer_skip_comment(lexer_T* lexer)
     {
         lexer_advance(lexer);
     }
+}
+
+char lexer_peek(lexer_T* lexer, int offset)
+{
+    size_t pos = lexer->index + offset;
+    if (pos >= strlen(lexer->contents))
+        return '\0'; // if out of bounds
+    return lexer->contents[pos];
 }

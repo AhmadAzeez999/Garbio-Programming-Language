@@ -47,4 +47,6 @@ AST_T* parser_parse_if(parser_T* parser, scope_T* scope);
 
 AST_T* parser_parse_number(parser_T* parser, scope_T* scope);
 
+AST_T* parser_parse_while(parser_T* parser, scope_T* scope);
+
 #endif

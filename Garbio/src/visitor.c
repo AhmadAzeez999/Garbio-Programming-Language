@@ -1,5 +1,6 @@
 #include "include/visitor.h"
 #include "include/scope.h"
+#include "include/token.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -104,6 +105,10 @@ AST_T* visitor_visit(visitor_T* visitor, AST_T* node)
             return visitor_visit_binop(visitor, node);
             break;
 
+        case AST_WHILE: 
+            return visitor_visit_while(visitor, node);
+            break;
+
         case AST_NOOP: return node;
             break;
 
@@ -119,10 +124,22 @@ AST_T* visitor_visit(visitor_T* visitor, AST_T* node)
 
 AST_T* visitor_visit_variable_definition(visitor_T* visitor, AST_T* node)
 {
-    scope_add_variable_definition(node->scope, node);
+    AST_T* existing_var_def = scope_get_variable_definition(node->scope, node->variable_definition_variable_name);
 
-    return node;
+    if (existing_var_def != NULL)
+    {
+        // Update the existing variable's value
+        existing_var_def->variable_definition_value = visitor_visit(visitor, node->variable_definition_value);
+        return existing_var_def;
+    }
+    else
+    {
+        // Add the new variable definition to the scope
+        scope_add_variable_definition(node->scope, node);
+        return node;
+    }
 }
+
 
 AST_T* visitor_visit_function_definition(visitor_T* visitor, AST_T* node)
 {
@@ -158,7 +175,7 @@ AST_T* visitor_visit_function_call(visitor_T* visitor, AST_T* node)
 
     if (funcdef == (void*)0)
     {
-        printf("Undefined method `%s`\n", node->function_call_name);
+        printf("Undefined function `%s`\n", node->function_call_name);
         exit(1);
     }
 
@@ -251,19 +268,19 @@ AST_T* visitor_visit_binop(visitor_T* visitor, AST_T* node)
 
     switch (node->op)
     {
-        case 16:
+        case TOKEN_PLUS:
             ast_number->number_value = (binop_left->number_value + binop_right->number_value);
             return ast_number;
             
-        case 17:
+        case TOKEN_MINUS:
             ast_number->number_value = (binop_left->number_value - binop_right->number_value);
             return ast_number;
 
-        case 18:
+        case TOKEN_MUL:
             ast_number->number_value = (binop_left->number_value * binop_right->number_value);
             return ast_number;
 
-        case 19:
+        case TOKEN_DIV:
             if (binop_right->number_value == 0)
             {
                 printf("Division by zero error \n");
@@ -271,10 +288,69 @@ AST_T* visitor_visit_binop(visitor_T* visitor, AST_T* node)
             }
 
             ast_number->number_value = (binop_left->number_value / binop_right->number_value);
+            ast_number->boolean_value = (binop_left->number_value / binop_right->number_value);
+
+            return ast_number;
+
+        case TOKEN_EQEQ:
+            ast_number->number_value = (binop_left->number_value == binop_right->number_value);
+            ast_number->boolean_value = (binop_left->number_value == binop_right->number_value);
+
+            return ast_number;
+
+        case TOKEN_NEQ:
+            ast_number->number_value = (binop_left->number_value != binop_right->number_value);
+            ast_number->boolean_value = (binop_left->number_value != binop_right->number_value);
+
+            return ast_number;
+
+        case TOKEN_LT:
+            ast_number->number_value = (binop_left->number_value < binop_right->number_value);
+            ast_number->boolean_value = (binop_left->number_value < binop_right->number_value);
+
+            return ast_number;
+
+        case TOKEN_GT:
+            ast_number->number_value = (binop_left->number_value > binop_right->number_value);
+            ast_number->boolean_value = (binop_left->number_value > binop_right->number_value);
+
+            return ast_number;
+
+        case TOKEN_LTE:
+            ast_number->number_value = (binop_left->number_value <= binop_right->number_value);
+            ast_number->boolean_value = (binop_left->number_value <= binop_right->number_value);
+
+            return ast_number;
+
+        case TOKEN_GTE:
+            ast_number->number_value = (binop_left->number_value >= binop_right->number_value);
+            ast_number->boolean_value = (binop_left->number_value >= binop_right->number_value);
+            return ast_number;
+
+        case TOKEN_OR:
+            ast_number->number_value = (binop_left->number_value || binop_right->number_value);
+            ast_number->boolean_value = (binop_left->number_value || binop_right->number_value);
+
+            return ast_number;
+
+        case TOKEN_AND:
+            ast_number->number_value = (binop_left->number_value && binop_right->number_value);
+            ast_number->boolean_value = (binop_left->number_value && binop_right->number_value);
+
             return ast_number;
 
         default:
             break;
+    }
+
+    return init_ast(AST_NOOP);
+}
+
+AST_T* visitor_visit_while(visitor_T* visitor, AST_T* node)
+{
+    while (visitor_visit(visitor, node->while_condition)->boolean_value)
+    {
+        visitor_visit(visitor, node->while_body);
     }
 
     return init_ast(AST_NOOP);

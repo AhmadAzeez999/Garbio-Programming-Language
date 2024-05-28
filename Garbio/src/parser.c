@@ -52,6 +52,8 @@ AST_T* parser_parse_statement(parser_T* parser, scope_T* scope)
             return parser_parse_id(parser, scope);
         case TOKEN_IF:
             return parser_parse_if(parser, scope);
+        case TOKEN_WHILE: 
+            return parser_parse_while(parser, scope);
     
         break;
     default:
@@ -105,7 +107,15 @@ AST_T* parser_parse_binop(parser_T* parser, scope_T* scope)
         parser->current_token->type == TOKEN_PLUS ||
         parser->current_token->type == TOKEN_MINUS ||
         parser->current_token->type == TOKEN_MUL ||
-        parser->current_token->type == TOKEN_DIV
+        parser->current_token->type == TOKEN_DIV ||
+        parser->current_token->type == TOKEN_EQEQ ||
+        parser->current_token->type == TOKEN_NEQ ||
+        parser->current_token->type == TOKEN_LT ||
+        parser->current_token->type == TOKEN_GT ||
+        parser->current_token->type == TOKEN_LTE ||
+        parser->current_token->type == TOKEN_GTE ||
+        parser->current_token->type == TOKEN_AND ||
+        parser->current_token->type == TOKEN_OR
     )
     {
         int op = parser->current_token->type;
@@ -150,7 +160,7 @@ AST_T* parser_parse_primary(parser_T* parser, scope_T* scope)
             parser_eat(parser, TOKEN_RIGHTPAREN);
 
             return expression;
-        
+
         default:
             break;
     }
@@ -271,7 +281,23 @@ AST_T* parser_parse_variable(parser_T* parser, scope_T* scope)
     char* token_value = parser->current_token->value;
     parser_eat(parser, TOKEN_ID); // var name or function call name
 
-    if (parser->current_token->type == TOKEN_LEFTPAREN)
+    if (parser->current_token->type == TOKEN_EQUALS)
+    {
+        // Defining
+        parser_eat(parser, TOKEN_EQUALS);
+
+        // Right-hand side
+        AST_T* assignment_value = parser_parse_expression(parser, scope);
+
+        // Node for assignment
+        AST_T* ast_assignment = init_ast(AST_VARIABLE_DEFINITION);
+        ast_assignment->variable_definition_variable_name = token_value;
+        ast_assignment->variable_definition_value = assignment_value;
+        ast_assignment->scope = scope;
+
+        return ast_assignment;
+    }
+    else if (parser->current_token->type == TOKEN_LEFTPAREN)
         return parser_parse_function_call(parser, scope);
 
     AST_T* ast_variable = init_ast(AST_VARIABLE);
@@ -314,6 +340,9 @@ AST_T* parser_parse_boolean(parser_T* parser, scope_T* scope, int value)
 {
     AST_T* ast_boolean = init_ast(AST_BOOLEAN);
     ast_boolean->boolean_value = value;
+
+    // For equality and co
+    ast_boolean->number_value = value;
 
     parser_eat(parser, value ? TOKEN_TRUE : TOKEN_FALSE);
 
@@ -388,9 +417,37 @@ AST_T* parser_parse_number(parser_T* parser, scope_T* scope)
     
     // Converting string to a float
     ast_number->number_value = atof(parser->current_token->value);
+    
+    if (parser->current_token->value != 0)
+        ast_number->boolean_value = 1;
+    else
+        ast_number->boolean_value = 0;
+
     parser_eat(parser, TOKEN_NUMBER);
 
     ast_number->scope = scope;
 
     return ast_number;
+}
+
+AST_T* parser_parse_while(parser_T* parser, scope_T* scope)
+{
+    parser_eat(parser, TOKEN_WHILE);
+    parser_eat(parser, TOKEN_LEFTPAREN);
+
+    AST_T* condition = parser_parse_expression(parser, scope);
+
+    parser_eat(parser, TOKEN_RIGHTPAREN);
+    parser_eat(parser, TOKEN_LEFTBRACE);
+
+    AST_T* body = parser_parse_statements(parser, scope);
+
+    parser_eat(parser, TOKEN_RIGHTBRACE);
+
+    AST_T* ast_while = init_ast(AST_WHILE);
+    ast_while->while_condition = condition;
+    ast_while->while_body = body;
+    ast_while->scope = scope;
+
+    return ast_while;
 }

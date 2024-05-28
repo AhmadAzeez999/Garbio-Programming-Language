@@ -36,4 +36,7 @@ token_T* lexer_collect_number(lexer_T* lexer);
 // To skip comments
 void lexer_skip_comment(lexer_T* lexer);
 
+// For checking the next char
+char lexer_peek(lexer_T* lexer, int offset);
+
 #endif
