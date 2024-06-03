@@ -1,1 +1,9 @@
-function int 
+int a = 8;
+float b = 7.5;
+char c = 'c';
+string d = "Hello!";
+
+displayln(a);
+displayln(b);
+displayln(c);
+displayln(d);

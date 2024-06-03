@@ -1,6 +1,6 @@
-function any add(x, y)
+function int add(x, y)
 {
-    return 9.8 + y;
+    return x + y;
 };
 
 ans = add(3, 5);
