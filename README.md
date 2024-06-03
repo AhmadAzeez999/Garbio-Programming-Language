@@ -59,6 +59,36 @@ while (count < 5)
 }
 ```
 
+6. return: returns values from functions
+``` garbio
+function int add(x, y)
+{
+    return x + y;
+};
+
+ans = add(3, 5);
+ans = add(8, 9);
+ans = add(1000, 5500);
+
+
+displayln(ans);
+```
+
+7. Type safety
+
+8. Logical operators
+- and
+- or
+- not
+- &&
+- ||
+- ==
+- !=
+- '>'
+- '<'
+- <=
+- >=
+
 ## Data Types:
 - Strings (text)
 - Numbers (integers)
