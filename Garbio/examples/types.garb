@@ -1,5 +1,1 @@
-int name = "gg";
-
-name = "BRUH";
-
-displayln(name);
+function int 

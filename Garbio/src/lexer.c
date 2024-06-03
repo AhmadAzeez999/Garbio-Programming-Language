@@ -199,6 +199,10 @@ token_T* lexer_get_next_token(lexer_T* lexer)
             {
                 id_token->type = TOKEN_OR;
             }
+            else if (strcmp(id_token->value, "not") == 0)
+            {
+                id_token->type = TOKEN_NEQ;
+            }
             else if (strcmp(id_token->value, "return") == 0)
             {
                 id_token->type = TOKEN_RETURN;
