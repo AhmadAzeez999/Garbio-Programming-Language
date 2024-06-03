@@ -63,6 +63,20 @@ AST_T* scope_add_variable_definition(scope_T* scope, AST_T* vardef)
     }
     else // if the list already exists
     {
+        // To loop through the arguments 
+        for (int i = 0; i < scope->variable_definitions_size; i++)
+        {
+            // If it is the same variable name
+            if (strcmp(scope->variable_definitions[i]->variable_definition_variable_name, vardef->variable_definition_variable_name) == 0)
+            {
+                scope->variable_definitions = realloc(
+                    scope->variable_definitions,
+                    scope->variable_definitions_size * sizeof(struct AST_STRUCT*)
+                );
+                scope->variable_definitions[i] = vardef; // push def to list
+            }
+        }
+
         scope->variable_definitions_size += 1;
         scope->variable_definitions = realloc(
             scope->variable_definitions,

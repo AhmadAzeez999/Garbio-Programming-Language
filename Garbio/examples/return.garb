@@ -1,0 +1,15 @@
+function add(x, y)
+{
+    return x + y;
+};
+
+ans = add(3, 5);
+ans = add(8, 9);
+ans = add(1000, 5500);
+
+
+displayln(ans);
+displayln(add(8, 15));
+displayln(add(30, 50));
+displayln(add(1000, 5500));
+displayln(add(9000, 789));

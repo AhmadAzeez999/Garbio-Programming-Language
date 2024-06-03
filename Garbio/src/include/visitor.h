@@ -4,7 +4,8 @@
 
 typedef struct VISITOR_STRUCT
 {
-
+    AST_T* return_value;
+    int return_called;
 } visitor_T;
 
 visitor_T* init_visitor();
@@ -34,5 +35,9 @@ AST_T* visitor_visit_number(visitor_T* visitor, AST_T* node);
 AST_T* visitor_visit_binop(visitor_T* visitor, AST_T* node);
 
 AST_T* visitor_visit_while(visitor_T* visitor, AST_T* node);
+
+AST_T* visitor_visit_char(visitor_T* visitor, AST_T* node);
+
+AST_T* visitor_visit_return(visitor_T* visitor, AST_T* node);
 
 #endif

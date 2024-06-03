@@ -10,12 +10,16 @@ AST_T* init_ast(int type)
     /* AST_VARIABLE_DEFINITION */
     ast->variable_definition_variable_name = (void*) 0;
     ast->variable_definition_value = (void*) 0;
+    ast->variable_definition_type = 0;
+    ast->value_type = 0;
 
     /* AST_FUNCTION_DEFINITION */
     ast->function_definition_body = (void*) 0;
     ast->function_definition_name = (void*) 0;
     ast->function_definition_args = (void*) 0;
     ast->function_definition_args_size = 0;
+    ast->function_definition_type = 0;
+    ast->function_definition_return_value = (void*) 0;
 
     /* AST_VARIABLE */
     ast->variable_name = (void*) 0;
@@ -45,12 +49,18 @@ AST_T* init_ast(int type)
     ast->if_else_body = (void*) 0;
 
     /* AST_NUMBER */
-    ast->string_value;
+    ast->number_value = 0;
 
     /* AST_BINOP */
     ast->binop_left = (void*) 0;
     ast->binop_right = (void*) 0;
     ast->op = 0;
+
+    /* AST_CHAR */
+    ast->char_value = 0;
+
+    /* AST_RETURN */
+    ast->return_value = (void*) 0;
 
     return ast;
 }

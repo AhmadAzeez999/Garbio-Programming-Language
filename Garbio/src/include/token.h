@@ -33,7 +33,9 @@ typedef struct TOKEN_STRUCT
         TOKEN_LTE,
         TOKEN_GTE,
         TOKEN_OR,
-        TOKEN_AND
+        TOKEN_AND,
+        TOKEN_CHAR,
+        TOKEN_RETURN
     } type;
 
     char* value;

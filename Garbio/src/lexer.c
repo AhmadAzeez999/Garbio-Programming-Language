@@ -50,6 +50,9 @@ token_T* lexer_get_next_token(lexer_T* lexer)
         if (isdigit(lexer->c))
             return lexer_collect_number(lexer);
 
+        if (lexer->c == '\'')
+            return lexer_collect_char(lexer);
+
         switch (lexer->c)
         {
             case '=':
@@ -196,6 +199,10 @@ token_T* lexer_get_next_token(lexer_T* lexer)
             {
                 id_token->type = TOKEN_OR;
             }
+            else if (strcmp(id_token->value, "return") == 0)
+            {
+                id_token->type = TOKEN_RETURN;
+            }
 
             return id_token;
         }
@@ -229,8 +236,21 @@ token_T* lexer_collect_string(lexer_T* lexer)
 token_T* lexer_collect_number(lexer_T* lexer)
 {
     char* value = calloc(1, sizeof(char));
-    while(isdigit(lexer->c))
+    int has_dot = 0;
+
+    while(isdigit(lexer->c) || lexer->c == '.')
     {
+        if (lexer->c == '.')
+        {
+            if (has_dot)
+            {
+                printf("Syntax error: Multiple dots in number\n");
+                exit(1);
+            }
+
+            has_dot = 1;
+        }
+
         char* s = lexer_get_current_char_as_string(lexer);
         value = realloc(value, (strlen(value) + strlen(s) + 1));
         strcat(value, s);
@@ -295,4 +315,27 @@ char lexer_peek(lexer_T* lexer, int offset)
     if (pos >= strlen(lexer->contents))
         return '\0'; // if out of bounds
     return lexer->contents[pos];
+}
+
+token_T* lexer_collect_char(lexer_T* lexer)
+{
+    lexer_advance(lexer); // to skip '
+
+    // Allocating memory for char
+    char* value = calloc(2, sizeof(char));
+
+    value[0] = lexer->c;
+    
+    lexer_advance(lexer); // to move past captured character
+    
+    if (lexer->c != '\'')
+    {
+        printf("Error: Unclosed character literal or char contains more than one character.\n");
+        free(value);
+        exit(1);
+    }
+
+    lexer_advance(lexer); // to skip closing '
+
+    return init_token(TOKEN_CHAR, value);
 }

@@ -19,6 +19,14 @@ typedef struct AST_STRUCT
         AST_NUMBER,
         AST_BINOP,
         AST_WHILE,
+        AST_TYPE_INT,
+        AST_TYPE_FLOAT,
+        AST_TYPE_DOUBLE,
+        AST_TYPE_CHAR,
+        AST_TYPE_STRING,
+        AST_TYPE_GENERIC,
+        AST_CHAR,
+        AST_RETURN,
         AST_NOOP // No operation
     } type;
 
@@ -28,12 +36,16 @@ typedef struct AST_STRUCT
     /* AST_VARIABLE_DEFINITION */
     char* variable_definition_variable_name;
     struct AST_STRUCT* variable_definition_value;
+    int variable_definition_type;
+    int value_type;
 
     /* AST_FUNCTION_DEFINITION */
     struct AST_STRUCT* function_definition_body;
     char* function_definition_name;
     struct AST_STRUCT** function_definition_args;
     size_t function_definition_args_size;
+    int function_definition_type;
+    struct AST_STRUCT* function_definition_return_value;
 
     /* AST_VARIABLE */
     char* variable_name;
@@ -63,7 +75,7 @@ typedef struct AST_STRUCT
     struct AST_STRUCT* if_else_body;
 
     /* AST_NUMBER */
-    int number_value;
+    double number_value;
 
     /* AST_BINOP */
     struct AST_STRUCT* binop_left; // left operand
@@ -77,6 +89,12 @@ typedef struct AST_STRUCT
     /* AST_ASSIGNMENT */
     struct AST_STRUCT* assignment_variable;
     struct AST_STRUCT* assignment_value;
+
+    /* AST_CHAR */
+    char char_value;
+
+    /* AST_RETURN */
+    struct AST_STRUCT* return_value;
 
 } AST_T;
 

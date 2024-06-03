@@ -54,6 +54,8 @@ AST_T* parser_parse_statement(parser_T* parser, scope_T* scope)
             return parser_parse_if(parser, scope);
         case TOKEN_WHILE: 
             return parser_parse_while(parser, scope);
+        case TOKEN_RETURN: 
+            return parser_parse_return(parser, scope);
     
         break;
     default:
@@ -142,6 +144,9 @@ AST_T* parser_parse_primary(parser_T* parser, scope_T* scope)
         case TOKEN_STRING: 
             return parser_parse_string(parser, scope);
 
+        case TOKEN_CHAR: 
+            return parser_parse_char(parser, scope);
+
         case TOKEN_ID: 
             return parser_parse_id(parser, scope);
 
@@ -205,7 +210,7 @@ AST_T* parser_parse_function_call(parser_T* parser, scope_T* scope)
     return function_call;
 }
 
-AST_T* parser_parse_variable_definition(parser_T* parser, scope_T* scope)
+AST_T* parser_parse_variable_definition(parser_T* parser, scope_T* scope, int var_type)
 {
     parser_eat(parser, TOKEN_ID); // var
     char* variable_definition_variable_name = parser->current_token->value;
@@ -217,6 +222,7 @@ AST_T* parser_parse_variable_definition(parser_T* parser, scope_T* scope)
     AST_T* variable_definition = init_ast(AST_VARIABLE_DEFINITION);
     variable_definition->variable_definition_variable_name = variable_definition_variable_name;
     variable_definition->variable_definition_value = variable_definition_value;
+    variable_definition->variable_definition_type = var_type;
 
     variable_definition->scope = scope;
 
@@ -227,6 +233,25 @@ AST_T* parser_parse_function_definition(parser_T* parser, scope_T* scope)
 {
     AST_T* ast = init_ast(AST_FUNCTION_DEFINITION); // ast node
     parser_eat(parser, TOKEN_ID); // function
+
+    // This is to check if the function returns something
+    char* return_type = parser->current_token->value;
+
+    if (strcmp(return_type, "var") == 0)
+        ast->function_definition_type = AST_TYPE_GENERIC;
+    else if (strcmp(return_type, "int") == 0)
+        ast->function_definition_type = AST_TYPE_INT;
+    else if (strcmp(return_type, "float") == 0)
+        ast->function_definition_type = AST_TYPE_FLOAT;
+    else if (strcmp(return_type, "char") == 0)
+        ast->function_definition_type = AST_TYPE_CHAR;
+    else if (strcmp(return_type, "string") == 0)
+        ast->function_definition_type = AST_TYPE_STRING;
+
+    if (ast->function_definition_type != 0)
+    {
+        parser_eat(parser, TOKEN_ID); // function type
+    }
 
     char* function_name = parser->current_token->value;
     ast->function_definition_name = calloc(
@@ -273,6 +298,13 @@ AST_T* parser_parse_function_definition(parser_T* parser, scope_T* scope)
 
     ast->scope = scope;
 
+    
+    if (parser->current_token->type != TOKEN_SEMI)
+    {
+        printf("Missing a semicolon ';' after function definition, I think\n");
+        exit(1);
+    }
+
     return ast;
 }
 
@@ -313,6 +345,8 @@ AST_T* parser_parse_string(parser_T* parser, scope_T* scope)
     AST_T* ast_string = init_ast(AST_STRING);
     ast_string->string_value = parser->current_token->value;
 
+    ast_string->value_type = AST_TYPE_STRING;
+
     parser_eat(parser, TOKEN_STRING);
 
     ast_string->scope = scope;
@@ -324,7 +358,23 @@ AST_T* parser_parse_id(parser_T* parser, scope_T* scope)
 {
     if (strcmp(parser->current_token->value, "var") == 0)
     {
-        return parser_parse_variable_definition(parser, scope);
+        return parser_parse_variable_definition(parser, scope, AST_TYPE_GENERIC);
+    }
+    else if (strcmp(parser->current_token->value, "int") == 0)
+    {
+        return parser_parse_variable_definition(parser, scope, AST_TYPE_INT);
+    }
+    else if (strcmp(parser->current_token->value, "float") == 0)
+    {
+        return parser_parse_variable_definition(parser, scope, AST_TYPE_FLOAT);
+    }
+    else if (strcmp(parser->current_token->value, "char") == 0)
+    {
+        return parser_parse_variable_definition(parser, scope, AST_TYPE_CHAR);
+    }
+    else if (strcmp(parser->current_token->value, "string") == 0)
+    {
+        return parser_parse_variable_definition(parser, scope, AST_TYPE_STRING);
     }
     else if (strcmp(parser->current_token->value, "function") == 0)
     {
@@ -415,9 +465,19 @@ AST_T* parser_parse_number(parser_T* parser, scope_T* scope)
 {
     AST_T* ast_number = init_ast(AST_NUMBER);
     
-    // Converting string to a float
-    ast_number->number_value = atof(parser->current_token->value);
-    
+    if (strchr(parser->current_token->value, '.') != NULL)
+    {
+        // Converting string to a floating-point number
+        ast_number->number_value = atof(parser->current_token->value);
+        ast_number->value_type = AST_TYPE_FLOAT;
+    }
+    else
+    {
+        // Convert to int
+        ast_number->number_value = atoi(parser->current_token->value);
+        ast_number->value_type = AST_TYPE_INT;
+    }
+
     if (parser->current_token->value != 0)
         ast_number->boolean_value = 1;
     else
@@ -450,4 +510,30 @@ AST_T* parser_parse_while(parser_T* parser, scope_T* scope)
     ast_while->scope = scope;
 
     return ast_while;
+}
+
+AST_T* parser_parse_char(parser_T* parser, scope_T* scope)
+{
+    AST_T* ast_char = init_ast(AST_CHAR);
+
+    ast_char->char_value = parser->current_token->value[0];
+    ast_char->value_type = AST_TYPE_CHAR;
+
+    parser_eat(parser, TOKEN_CHAR);
+
+    ast_char->scope = scope;
+
+    return ast_char;
+}
+
+AST_T* parser_parse_return(parser_T* parser, scope_T* scope)
+{
+    parser_eat(parser, TOKEN_RETURN);
+
+    AST_T* ast_return = init_ast(AST_RETURN);
+    ast_return->return_value = parser_parse_expression(parser, scope);
+
+    ast_return->scope = scope;
+
+    return ast_return;
 }

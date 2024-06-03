@@ -4,6 +4,32 @@
 #include <stdio.h>
 #include <string.h>
 
+const char* get_type_string(int type)
+{
+    switch (type)
+    {
+    case AST_TYPE_INT:
+        return "int";
+        break;
+    case AST_TYPE_FLOAT:
+        return "float";
+        break;
+    case AST_TYPE_CHAR:
+        return "char";
+        break;
+    case AST_TYPE_STRING:
+        return "string";
+        break;
+    case AST_TYPE_GENERIC:
+        return "generic";
+        break;
+    
+    default:
+        return "Unknown type";
+        break;
+    }
+}
+
 static AST_T* builtin_function_print(visitor_T* visitor, AST_T** args, int args_size)
 {
     for (int i = 0; i < args_size; i++)
@@ -12,16 +38,27 @@ static AST_T* builtin_function_print(visitor_T* visitor, AST_T** args, int args_
 
         switch (visited_ast->type)
         {
-            case AST_STRING: printf("%s", visited_ast->string_value);
+            case AST_STRING: 
+                printf("%s", visited_ast->string_value);
                 break;
 
-            case AST_BOOLEAN: printf("%s", visited_ast->boolean_value ? "true" : "false");
+            case AST_BOOLEAN: 
+                printf("%s", visited_ast->boolean_value ? "true" : "false");
                 break;
 
-            case AST_NUMBER: printf("%d", (int)visited_ast->number_value);
+            case AST_NUMBER:
+                if (visited_ast->value_type == AST_TYPE_INT)
+                    printf("%d", (int)visited_ast->number_value);
+                else
+                    printf("%f", visited_ast->number_value);
                 break;
             
-            default: printf("%p", visited_ast);
+            case AST_CHAR: 
+                printf("%c", visited_ast->char_value);
+                break;
+            
+            default: 
+                printf("%p", visited_ast);
                 break;
         }
     }
@@ -43,7 +80,15 @@ static AST_T* builtin_function_println(visitor_T* visitor, AST_T** args, int arg
             case AST_BOOLEAN: printf("%s\n", visited_ast->boolean_value ? "true" : "false");
                 break;
 
-            case AST_NUMBER: printf("%d\n", (int)visited_ast->number_value);
+            case AST_NUMBER:
+                if (visited_ast->value_type == AST_TYPE_INT)
+                    printf("%d\n", (int)visited_ast->number_value);
+                else
+                    printf("%f\n", visited_ast->number_value);
+                break;
+
+            case AST_CHAR: 
+                printf("%c\n", visited_ast->char_value);
                 break;
             
             default: printf("%p\n", visited_ast);
@@ -57,6 +102,9 @@ static AST_T* builtin_function_println(visitor_T* visitor, AST_T** args, int arg
 visitor_T* init_visitor()
 {
     visitor_T* visitor = calloc(1, sizeof(struct VISITOR_STRUCT));
+
+    visitor->return_value = (void*)0;
+    visitor->return_called = 0;
 
     return visitor;
 }
@@ -109,6 +157,14 @@ AST_T* visitor_visit(visitor_T* visitor, AST_T* node)
             return visitor_visit_while(visitor, node);
             break;
 
+        case AST_CHAR: 
+            return visitor_visit_char(visitor, node);
+            break;
+
+        case AST_RETURN: 
+            return visitor_visit_return(visitor, node);
+            break;
+
         case AST_NOOP: return node;
             break;
 
@@ -128,12 +184,31 @@ AST_T* visitor_visit_variable_definition(visitor_T* visitor, AST_T* node)
 
     if (existing_var_def != NULL)
     {
+
+        if (existing_var_def->variable_definition_type != node->variable_definition_value->value_type &&
+            existing_var_def->variable_definition_type != AST_TYPE_GENERIC)
+        {
+            printf("Type error: Whoa! You can't assign a value of type %s to a variable of type %s\n", 
+            get_type_string(node->variable_definition_value->value_type), 
+            get_type_string(existing_var_def->variable_definition_type));
+            exit(1);
+        }
+
         // Update the existing variable's value
         existing_var_def->variable_definition_value = visitor_visit(visitor, node->variable_definition_value);
         return existing_var_def;
     }
     else
     {
+        if (node->variable_definition_type != node->variable_definition_value->value_type &&
+            node->variable_definition_type != AST_TYPE_GENERIC)
+        {
+            printf("Type error: Whoa! You can't assign a value of type %s to a variable of type %s\n", 
+            get_type_string(node->variable_definition_value->value_type), 
+            get_type_string(node->variable_definition_type));
+            exit(1);
+        }
+
         // Add the new variable definition to the scope
         scope_add_variable_definition(node->scope, node);
         return node;
@@ -179,6 +254,19 @@ AST_T* visitor_visit_function_call(visitor_T* visitor, AST_T* node)
         exit(1);
     }
 
+    if (funcdef->function_definition_args_size != node->function_call_arguments_size)
+    {
+        printf("Error: Function '%s' expects %ld arguments, but %ld were provided.\n",
+        node->function_call_name,
+        funcdef->function_definition_args_size,
+        node->function_call_arguments_size);
+        exit(1);
+    }
+
+    // For functions that return a value
+    visitor->return_called = 0;
+    visitor->return_value = (void*)0;
+
     for (int i = 0; i < (int) node->function_call_arguments_size; i++)
     {
         // Grab the variable from the function definition arguments
@@ -193,14 +281,45 @@ AST_T* visitor_visit_function_call(visitor_T* visitor, AST_T* node)
         // Attach value to variable definition
         ast_vardef->variable_definition_value = ast_value;
 
-        // Copy variable name into variable definition
+        // Copy variable name into variable definition name
         ast_vardef->variable_definition_variable_name = (char*) calloc(strlen(ast_var->variable_name) + 1, sizeof(char));
         strcpy(ast_vardef->variable_definition_variable_name, ast_var->variable_name);
 
         scope_add_variable_definition(funcdef->function_definition_body->scope, ast_vardef);
     }
 
-    return visitor_visit(visitor, funcdef->function_definition_body);
+    AST_T* function_body_visit = visitor_visit(visitor, funcdef->function_definition_body);
+
+    if (visitor->return_called)
+    {
+        if (funcdef->function_definition_type == AST_TYPE_GENERIC)
+        {
+            return visitor->return_value;
+        }
+        else if (funcdef->function_definition_type == visitor->return_value->value_type)
+        {
+            return visitor->return_value;
+        }
+        else if (funcdef->function_definition_type == 0)
+        {
+            printf("Function: '%s' does not have a return type.\n", funcdef->function_definition_name);
+            exit(1);
+        }
+        else
+        {
+            printf("Type error: What?! A function of type %s can't return a variable of type %s\n", 
+            get_type_string(funcdef->function_definition_type), 
+            get_type_string(visitor->return_value->value_type));
+            exit(1);
+        }
+    }
+    else if (funcdef->function_definition_type != 0)
+    {
+        printf("You're missing the 'return' keyword in function: '%s'.\n", funcdef->function_definition_name);
+        exit(1);
+    }
+
+    return function_body_visit;
 }
 
 AST_T* visitor_visit_string(visitor_T* visitor, AST_T* node)
@@ -269,7 +388,17 @@ AST_T* visitor_visit_binop(visitor_T* visitor, AST_T* node)
     switch (node->op)
     {
         case TOKEN_PLUS:
-            ast_number->number_value = (binop_left->number_value + binop_right->number_value);
+            if (binop_left->value_type == AST_TYPE_INT)
+            {
+                ast_number->number_value = (int)(binop_left->number_value + binop_right->number_value);
+                ast_number->value_type = AST_TYPE_INT;
+            }
+            else
+            {
+                ast_number->number_value = (binop_left->number_value + binop_right->number_value);
+                ast_number->value_type = AST_TYPE_FLOAT;
+            }
+
             return ast_number;
             
         case TOKEN_MINUS:
@@ -354,4 +483,20 @@ AST_T* visitor_visit_while(visitor_T* visitor, AST_T* node)
     }
 
     return init_ast(AST_NOOP);
+}
+
+AST_T* visitor_visit_char(visitor_T* visitor, AST_T* node)
+{
+    return node;
+}
+
+AST_T* visitor_visit_return(visitor_T* visitor, AST_T* node)
+{
+    AST_T* return_value = visitor_visit(visitor, node->return_value);
+
+    visitor->return_value = return_value;
+    visitor->return_called = 1;
+
+    // To stop visiting further nodes
+    return return_value;
 }

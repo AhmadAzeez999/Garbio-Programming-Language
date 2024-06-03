@@ -39,4 +39,7 @@ void lexer_skip_comment(lexer_T* lexer);
 // For checking the next char
 char lexer_peek(lexer_T* lexer, int offset);
 
+// This will define how to parse a char
+token_T* lexer_collect_char(lexer_T* lexer);
+
 #endif

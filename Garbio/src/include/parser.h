@@ -31,7 +31,7 @@ AST_T* parser_parse_primary(parser_T* parser, scope_T* scope);
 
 AST_T* parser_parse_function_call(parser_T* parser, scope_T* scope);
 
-AST_T* parser_parse_variable_definition(parser_T* parser, scope_T* scope);
+AST_T* parser_parse_variable_definition(parser_T* parser, scope_T* scope, int var_type);
 
 AST_T* parser_parse_function_definition(parser_T* parser, scope_T* scope);
 
@@ -48,5 +48,9 @@ AST_T* parser_parse_if(parser_T* parser, scope_T* scope);
 AST_T* parser_parse_number(parser_T* parser, scope_T* scope);
 
 AST_T* parser_parse_while(parser_T* parser, scope_T* scope);
+
+AST_T* parser_parse_char(parser_T* parser, scope_T* scope);
+
+AST_T* parser_parse_return(parser_T* parser, scope_T* scope);
 
 #endif

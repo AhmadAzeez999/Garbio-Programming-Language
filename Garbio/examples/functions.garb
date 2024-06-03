@@ -1,6 +1,6 @@
 function dosomething()
 {
-    display("something");
+    displayln("something");
 };
     
 dosomething();
