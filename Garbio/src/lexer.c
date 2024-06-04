@@ -248,7 +248,7 @@ token_T* lexer_collect_number(lexer_T* lexer)
         {
             if (has_dot)
             {
-                printf("Syntax error: Multiple dots in number\n");
+                fprintf(stderr, "Syntax error: Multiple dots in number\n");
                 exit(1);
             }
 
@@ -334,7 +334,7 @@ token_T* lexer_collect_char(lexer_T* lexer)
     
     if (lexer->c != '\'')
     {
-        printf("Error: Unclosed character literal or char contains more than one character.\n");
+        fprintf(stderr, "Error: Unclosed character literal or char contains more than one character.\n");
         free(value);
         exit(1);
     }

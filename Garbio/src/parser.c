@@ -30,7 +30,7 @@ void parser_eat(parser_T* parser, int token_type)
     }
     else
     {
-        printf("Unexpected token '%s', with type %d \n",
+        fprintf(stderr, "Unexpected token '%s', with type %d \n",
         parser->current_token->value,
         parser->current_token->type
         );
@@ -301,7 +301,7 @@ AST_T* parser_parse_function_definition(parser_T* parser, scope_T* scope)
     
     if (parser->current_token->type != TOKEN_SEMI)
     {
-        printf("Missing a semicolon ';' after function definition, I think\n");
+        fprintf(stderr, "Missing a semicolon ';' after function definition, I think\n");
         exit(1);
     }
 

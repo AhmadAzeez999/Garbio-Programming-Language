@@ -172,7 +172,7 @@ AST_T* visitor_visit(visitor_T* visitor, AST_T* node)
             break;
     }
 
-    printf("Uncaught state of type `%d`\n", node->type);
+    fprintf(stderr, "Uncaught state of type `%d`\n", node->type);
     exit(1);
 
     return init_ast(AST_NOOP);
@@ -188,7 +188,7 @@ AST_T* visitor_visit_variable_definition(visitor_T* visitor, AST_T* node)
         if (existing_var_def->variable_definition_type != node->variable_definition_value->value_type &&
             existing_var_def->variable_definition_type != AST_TYPE_GENERIC)
         {
-            printf("Type error: Whoa! You can't assign a value of type %s to a variable of type %s\n", 
+            fprintf(stderr, "Type error: Whoa! You can't assign a value of type %s to a variable of type %s\n", 
             get_type_string(node->variable_definition_value->value_type), 
             get_type_string(existing_var_def->variable_definition_type));
             exit(1);
@@ -203,7 +203,7 @@ AST_T* visitor_visit_variable_definition(visitor_T* visitor, AST_T* node)
         if (node->variable_definition_type != node->variable_definition_value->value_type &&
             node->variable_definition_type != AST_TYPE_GENERIC)
         {
-            printf("Type error: Whoa! You can't assign a value of type %s to a variable of type %s\n", 
+            fprintf(stderr, "Type error: Whoa! You can't assign a value of type %s to a variable of type %s\n", 
             get_type_string(node->variable_definition_value->value_type), 
             get_type_string(node->variable_definition_type));
             exit(1);
@@ -230,7 +230,7 @@ AST_T* visitor_visit_variable(visitor_T* visitor, AST_T* node)
     if (vardef != (void*) 0) // if we found the var definition, visit it
         return visitor_visit(visitor, vardef->variable_definition_value);
 
-    printf("Undefined variable `%s`\n", node->variable_name);
+    fprintf(stderr, "Wait what?! Undefined variable `%s`\n", node->variable_name);
     exit(1);
 }
 
@@ -250,13 +250,13 @@ AST_T* visitor_visit_function_call(visitor_T* visitor, AST_T* node)
 
     if (funcdef == (void*)0)
     {
-        printf("Undefined function `%s`\n", node->function_call_name);
+        fprintf(stderr, "Hold up! Undefined function `%s`\n", node->function_call_name);
         exit(1);
     }
 
     if (funcdef->function_definition_args_size != node->function_call_arguments_size)
     {
-        printf("Error: Function '%s' expects %ld arguments, but %ld were provided.\n",
+        fprintf(stderr, "Error: Function '%s' expects %ld arguments, but %ld were provided.\n",
         node->function_call_name,
         funcdef->function_definition_args_size,
         node->function_call_arguments_size);
@@ -302,7 +302,7 @@ AST_T* visitor_visit_function_call(visitor_T* visitor, AST_T* node)
         }
         else if (funcdef->function_definition_type == 0)
         {
-            printf("Function: '%s' does not have a return type.\n", funcdef->function_definition_name);
+            fprintf(stderr, "Function: '%s' does not have a return type.\n", funcdef->function_definition_name);
             exit(1);
         }
         else
@@ -315,7 +315,7 @@ AST_T* visitor_visit_function_call(visitor_T* visitor, AST_T* node)
     }
     else if (funcdef->function_definition_type != 0)
     {
-        printf("You're missing the 'return' keyword in function: '%s'.\n", funcdef->function_definition_name);
+        fprintf(stderr, "You're missing the 'return' keyword in function: '%s'.\n", funcdef->function_definition_name);
         exit(1);
     }
 
@@ -412,7 +412,7 @@ AST_T* visitor_visit_binop(visitor_T* visitor, AST_T* node)
         case TOKEN_DIV:
             if (binop_right->number_value == 0)
             {
-                printf("Division by zero error \n");
+                fprintf(stderr, "Division by zero error \n");
                 exit(1);
             }
 

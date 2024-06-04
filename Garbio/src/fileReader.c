@@ -40,7 +40,7 @@ char* get_file_contents(const char* filepath)
     }
     else
     {
-        printf("Error opening file: %s\n", filepath);
+        fprintf(stderr, "Error opening file: %s\n", filepath);
         exit(EXIT_FAILURE);
     }
 
