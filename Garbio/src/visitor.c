@@ -180,6 +180,12 @@ AST_T* visitor_visit(visitor_T* visitor, AST_T* node)
 
 AST_T* visitor_visit_variable_definition(visitor_T* visitor, AST_T* node)
 {
+    if (node->variable_definition_value->type == AST_FUNCTION_CALL)
+    {
+        // Getting the value from the function call which has a return type
+        node->variable_definition_value = visitor_visit(visitor, node->variable_definition_value);
+    }
+    
     AST_T* existing_var_def = scope_get_variable_definition(node->scope, node->variable_definition_variable_name);
 
     if (existing_var_def != NULL)
@@ -189,7 +195,7 @@ AST_T* visitor_visit_variable_definition(visitor_T* visitor, AST_T* node)
             existing_var_def->variable_definition_type != AST_TYPE_GENERIC)
         {
             fprintf(stderr, "Type error: Whoa! You can't assign a value of type %s to a variable of type %s\n", 
-            get_type_string(node->variable_definition_value->value_type), 
+            get_type_string(node->variable_definition_value->value_type),
             get_type_string(existing_var_def->variable_definition_type));
             exit(1);
         }

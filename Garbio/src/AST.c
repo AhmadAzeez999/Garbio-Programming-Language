@@ -28,6 +28,7 @@ AST_T* init_ast(int type)
     ast->function_call_name = (void*) 0;
     ast->function_call_arguments = (void*) 0;
     ast->function_call_arguments_size = 0;
+    ast->function_call_type = 0;
 
     /* AST_STRING */
     ast->string_value = (void*) 0;

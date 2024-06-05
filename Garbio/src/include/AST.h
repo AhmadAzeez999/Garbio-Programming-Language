@@ -54,6 +54,7 @@ typedef struct AST_STRUCT
     char* function_call_name;
     struct AST_STRUCT** function_call_arguments;
     size_t function_call_arguments_size;
+    int function_call_type;
 
     /* AST_STRING */
     char* string_value;
