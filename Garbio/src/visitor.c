@@ -99,6 +99,44 @@ static AST_T* builtin_function_println(visitor_T* visitor, AST_T** args, int arg
     return init_ast(AST_NOOP);
 }
 
+static AST_T* builtin_function_input(visitor_T* visitor, AST_T** args, int args_size)
+{
+    char input_buffer[1024]; // Buffer for storing user input
+
+    if (args_size > 0)
+    {
+        // Print the prompt message if any
+        AST_T* prompt_ast = visitor_visit(visitor, args[0]);
+
+        if (prompt_ast->type == AST_STRING)
+        {
+            printf("%s", prompt_ast->string_value);
+        }
+    }
+
+    // Read user input
+    if (fgets(input_buffer, sizeof(input_buffer), stdin) != NULL)
+    {
+        // Removing trailing newline character
+        size_t len = strlen(input_buffer);
+
+        if (len > 0 && input_buffer[len - 1] == '\n')
+        {
+            input_buffer[len - 1] = '\0';
+        }
+
+        // Creating a new AST node for the string input
+        AST_T* input_ast = init_ast(AST_STRING);
+        input_ast->string_value = strdup(input_buffer);
+        return input_ast;
+    }
+
+    // Returning an empty string if input failed
+    AST_T* empty_ast = init_ast(AST_STRING);
+    empty_ast->string_value = strdup("");
+    return empty_ast;
+}
+
 visitor_T* init_visitor()
 {
     visitor_T* visitor = calloc(1, sizeof(struct VISITOR_STRUCT));
@@ -252,6 +290,11 @@ AST_T* visitor_visit_function_call(visitor_T* visitor, AST_T* node)
         return builtin_function_println(visitor, node->function_call_arguments, node->function_call_arguments_size);
     }
 
+    if (strcmp(node->function_call_name, "input") == 0)
+    {
+        return builtin_function_input(visitor, node->function_call_arguments, node->function_call_arguments_size);
+    }
+
     AST_T* funcdef = scope_get_function_definition(node->scope, node->function_call_name);
 
     if (funcdef == (void*)0)
@@ -394,12 +437,28 @@ AST_T* visitor_visit_binop(visitor_T* visitor, AST_T* node)
     switch (node->op)
     {
         case TOKEN_PLUS:
+
+            if (binop_left->type == AST_STRING && binop_right->type == AST_STRING)
+            {
+                // Concatenate strings
+                size_t left_len = strlen(binop_left->string_value);
+                size_t right_len = strlen(binop_right->string_value);
+                char* result_str = calloc(left_len + right_len + 1, sizeof(char));
+                strcpy(result_str, binop_left->string_value);
+                strcat(result_str, binop_right->string_value);
+
+                AST_T* ast_string = init_ast(AST_STRING);
+                ast_string->string_value = result_str;
+
+                return ast_string;
+            }
+
             if (binop_left->value_type == AST_TYPE_INT)
             {
                 ast_number->number_value = (int)(binop_left->number_value + binop_right->number_value);
                 ast_number->value_type = AST_TYPE_INT;
             }
-            else
+            else if (binop_left->value_type == AST_TYPE_FLOAT)
             {
                 ast_number->number_value = (binop_left->number_value + binop_right->number_value);
                 ast_number->value_type = AST_TYPE_FLOAT;
