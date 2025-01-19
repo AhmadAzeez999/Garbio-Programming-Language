@@ -2,7 +2,7 @@ wsl --install
 cd /mnt/c/Users/user/Documents/GitHub/Garbio-Programming-Language/Garbio
 
 For new laptop:
-cd /mnt/c/Users/abios/OneDrive/Documents/GitHub/Garbio-Programming-Language/Garbio
+cd /mnt/c/Users/[username here]/OneDrive/Documents/GitHub/Garbio-Programming-Language/Garbio
 
 What I had to do to get make to work:
 Install make
